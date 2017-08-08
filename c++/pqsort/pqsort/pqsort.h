@@ -70,9 +70,9 @@ void subProgram(ShareData& shareData) {
                 return;
             }
             else {
-                ++shareData.numOfStoppingThread;
+                ++numOfStoppingThread;
                 shareData.cv.wait(ulk, [&taskQueue] {return !taskQueue.empty(); });
-                --shareData.numOfStoppingThread;
+                --numOfStoppingThread;
             }
         }
         Task task = taskQueue.front();
