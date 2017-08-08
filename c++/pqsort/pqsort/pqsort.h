@@ -26,7 +26,7 @@ public:
 };
 
 void processTask(int* begin, int* end, ShareData& shareData) {
-    int *left, *right, t, benchmark;
+    int *left, *right, benchmark;
     for (;;) {
         if (std::distance(begin, end) <= 500) {
             std::sort(begin, end);
@@ -39,13 +39,11 @@ void processTask(int* begin, int* end, ShareData& shareData) {
         while (left != right)
         {
             while (right != left && *right >= benchmark) --right;
-            t = *left;
             *left = *right;
-            *right = t;
+            *right = benchmark;
             while (left != right && *left <= benchmark) ++left;
-            t = *right;
             *right = *left;
-            *left = t;
+            *left = benchmark;
         }
         *left = benchmark;
 
