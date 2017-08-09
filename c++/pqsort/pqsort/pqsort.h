@@ -25,10 +25,10 @@ public:
     std::mutex mtx;
 };
 
-void processTask(int* begin, int* end, ShareData& shareData) {
+void processTask(int* begin, int* end, unsigned minLength, ShareData& shareData) {
     int *left, *right, benchmark;
     for (;;) {
-        if (std::distance(begin, end) <= 500) {
+        if (std::distance(begin, end) <= minLength) {
             std::sort(begin, end);
             return;
         }
@@ -55,7 +55,7 @@ void processTask(int* begin, int* end, ShareData& shareData) {
     }
 }
 
-void subProgram(ShareData& shareData) {
+void subProgram(ShareData& shareData, unsigned minLength) {
     auto& taskQueue = shareData.taskQueue;
     unsigned& numOfStoppingThread = shareData.numOfStoppingThread;
     std::unique_lock<std::mutex> ulk{ shareData.mtx,std::defer_lock };
@@ -70,9 +70,9 @@ void subProgram(ShareData& shareData) {
                 return;
             }
             else {
-                ++numOfStoppingThread;
+                ++shareData.numOfStoppingThread;
                 shareData.cv.wait(ulk, [&taskQueue] {return !taskQueue.empty(); });
-                --numOfStoppingThread;
+                --shareData.numOfStoppingThread;
             }
         }
         Task task = taskQueue.front();
@@ -80,23 +80,23 @@ void subProgram(ShareData& shareData) {
         ulk.unlock();
         if (task.finish)
             return;
-        processTask(task.begin, task.end, shareData);
+        processTask(task.begin, task.end, minLength, shareData);
     }
 }
 
 void pqsort(int* begin, int* end) {
-
-    if (std::distance(begin, end) <= 1000) {
+    unsigned minLength = std::distance(begin, end);
+    if (minLength <= 1000) {
         std::sort(begin, end);
         return;
     }
-
+    minLength = minLength / (2 * std::thread::hardware_concurrency());
     ShareData shareData;
     shareData.taskQueue.push(Task(begin, end));
     std::vector<std::thread> threadPool;
     for (unsigned i = 1; i <= std::thread::hardware_concurrency() - 1; ++i)
-        threadPool.push_back(std::thread(subProgram, std::ref(shareData)));
-    subProgram(shareData);
+        threadPool.push_back(std::thread(subProgram, std::ref(shareData), minLength));
+    subProgram(shareData, minLength);
     for (unsigned i = 0; i <= std::thread::hardware_concurrency() - 2; ++i)
         threadPool[i].join();
 }

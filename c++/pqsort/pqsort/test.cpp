@@ -52,6 +52,7 @@ int main()
     test(10000);
     test(1000000);
     test(10000000);
+    test(100000000);
     return 0;
 }
 
