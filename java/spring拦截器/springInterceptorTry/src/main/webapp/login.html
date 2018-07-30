@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        function send() {
+            $.ajax({
+                type: 'get',
+                url: 'loginController',
+                success: function (mes) {
+                    var newDoc = document.open("text/html", "replace");
+                    newDoc.write(mes);
+                    newDoc.close();
+                }
+            })
+        }
+    </script>
+</head>
+<body>
+<button type="button" id="btn" onclick="send()">login</button>
+</body>
+</html>
